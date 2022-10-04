@@ -15,6 +15,8 @@ import {
   normalizeBookTickers
 } from 'tardis-dev'
 
+import { computeDerivativeBars } from './derivativebar'
+
 export type WithDataType = {
   dataTypes: string[]
 }
@@ -39,9 +41,10 @@ export function* getNormalizers(dataTypes: string[]): IterableIterator<MapperFac
     yield normalizeBookChanges
   }
 
-  if (dataTypes.includes('derivative_ticker')) {
+  if (dataTypes.includes('derivative_ticker') || dataTypes.some((dataTypes) => dataTypes.startsWith('derivative_bar_'))) {
     yield normalizeDerivativeTickers
   }
+  
 
   if (dataTypes.includes('liquidation')) {
     yield normalizeLiquidations
@@ -59,6 +62,9 @@ function getRequestedDataTypes(options: ReplayNormalizedOptionsWithDataType | St
   return options.dataTypes.map((dataType) => {
     if (dataType.startsWith('trade_bar_')) {
       return 'trade_bar'
+    }
+    if (dataType.startsWith('derivative_bar_')) {
+      return 'derivative_bar'
     }
     if (dataType.startsWith('book_snapshot_')) {
       return 'book_snapshot'
@@ -118,6 +124,21 @@ const tradeBarSuffixToKindMap = {
   }
 } as const
 
+const derivativeBarSuffixToKindMap = {
+  ms: {
+    kind: 'time',
+    multiplier: 1
+  },
+  s: {
+    kind: 'time',
+    multiplier: 1000
+  },
+  m: {
+    kind: 'time',
+    multiplier: 60 * 1000
+  },
+} as const
+
 const bookSnapshotsToIntervalMultiplierMap = {
   ms: {
     multiplier: 1
@@ -140,6 +161,10 @@ export function getComputables(dataTypes: string[]): ComputableFactory<any>[] {
       computables.push(parseAsTradeBarComputable(dataType))
     }
 
+    if (dataType.startsWith('derivative_bar')) {
+      computables.push(parseAsDerivativeBarComputable(dataType))
+    }
+
     if (dataType.startsWith('book_snapshot')) {
       computables.push(parseAsBookSnapshotComputable(dataType))
     }
@@ -150,6 +175,27 @@ export function getComputables(dataTypes: string[]): ComputableFactory<any>[] {
   }
 
   return computables
+}
+function parseAsDerivativeBarComputable(dataType: string) {
+  for (const suffix of getKeys(derivativeBarSuffixToKindMap)) {
+    if (dataType.endsWith(suffix) === false) {
+      continue
+    }
+
+    const intervalString = dataType.replace('derivative_bar_', '').replace(suffix, '')
+    const interval = Number(intervalString)
+    if (interval === NaN) {
+      throw new Error(`invalid interval: ${intervalString}, data type: ${dataType}`)
+    }
+
+    return computeDerivativeBars({
+      interval: derivativeBarSuffixToKindMap[suffix].multiplier * interval,
+      kind: derivativeBarSuffixToKindMap[suffix].kind,
+      name: dataType
+    })
+  }
+
+  throw new Error(`invalid data type: ${dataType}`)
 }
 
 function parseAsTradeBarComputable(dataType: string) {

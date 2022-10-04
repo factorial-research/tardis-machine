@@ -1,9 +1,8 @@
-from node:18-slim
-# version arg contains current git tag
-ARG VERSION_ARG
-# install git
-RUN apt-get update && apt-get install -y git
-# install tardis-machine globally (exposes tardis-machine command)
-RUN npm install --global --unsafe-perm tardis-machine@$VERSION_ARG
+FROM node:18-slim
+
+COPY ./ /tardis-machine
+WORKDIR /tardis-machine
+RUN npm install
+RUN npx tsc
 # run it
-CMD tardis-machine --cache-dir=/.cache
+CMD node ./bin/tardis-machine.js --debug=true --cache-dir=/.cache
