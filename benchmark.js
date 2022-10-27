@@ -193,14 +193,14 @@ async function runBenchmarks() {
   console.log(`tardis-machine benchmark for ${EXCHANGE} from ${FROM_DATE} to ${TO_DATE}`)
   console.log('\n')
 
-  await httpReplayBenchmark({ JSONParseResponse: false })
+  // await httpReplayBenchmark({ JSONParseResponse: false })
 
-  await httpReplayBenchmark({ JSONParseResponse: true })
+  // await httpReplayBenchmark({ JSONParseResponse: true })
 
-  await wsReplayBenchmark({ JSONParseResponse: true })
+  // await wsReplayBenchmark({ JSONParseResponse: true })
 
-  await httpReplayNormalizedBenchmark({ computeTBTBookSnapshots: false })
-  await httpReplayNormalizedBenchmark({ computeTBTBookSnapshots: true })
+  // await httpReplayNormalizedBenchmark({ computeTBTBookSnapshots: false })
+  // await httpReplayNormalizedBenchmark({ computeTBTBookSnapshots: true })
 
   await wsReplayNormalizedBenchmark({ computeTBTBookSnapshots: false })
   await wsReplayNormalizedBenchmark({ computeTBTBookSnapshots: true })

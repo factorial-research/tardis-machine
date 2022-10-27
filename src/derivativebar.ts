@@ -28,7 +28,7 @@ type DerivativeBar = {
     deltaOi: number
     predictedFundingRate: number | undefined
     ticks: number
-    fundingTimestamp: Date
+    fundingTimestamp: Date | undefined
     timestamp: Date
     localTimestamp: Date
 }
@@ -158,6 +158,7 @@ class DerivativeBarComputable {
     inProgressBar.predictedFundingRate = derivativeTicker.predictedFundingRate
     inProgressBar.ticks += 1
     inProgressBar.timestamp = derivativeTicker.timestamp
+    inProgressBar.fundingTimestamp = derivativeTicker.fundingTimestamp
   }
 
   private _reset() {
@@ -181,6 +182,7 @@ class DerivativeBarComputable {
     barToReset.closeIndexPrice = undefined
     barToReset.closeMarkPrice = undefined
     barToReset.closeTimestamp = DATE_MIN
+    barToReset.fundingTimestamp = undefined
     barToReset.deltaOi = 0
     barToReset.predictedFundingRate = undefined
     barToReset.ticks = 0
